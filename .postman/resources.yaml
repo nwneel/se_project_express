@@ -1,0 +1,5 @@
+workspace:
+  id: 0f9b5262-b2b4-4534-8128-878a4c5a35eb
+cloudResources:
+  collections:
+    ../postman/collections/Sprint 12 Tests: 56153705-77789ef8-c662-45bd-988c-123ef2e964a0

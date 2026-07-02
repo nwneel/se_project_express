@@ -1,4 +1,5 @@
 const User = require("../models/user");
+const { HTTP_STATUS } = require("../utils/errors");
 
 const getUsers = (req, res) => {
   User.find({})
@@ -7,7 +8,9 @@ const getUsers = (req, res) => {
     })
     .catch((err) => {
       console.error(err);
-      return res.status(500).send({ message: err.message });
+      return res
+        .status(HTTP_STATUS.SERVER_ERROR)
+        .send({ message: "An error has occurred on the server." });
     });
 };
 
@@ -19,9 +22,13 @@ const createUser = (req, res) => {
     .catch((err) => {
       console.error(err);
       if (err.name === "ValidationError") {
-        return res.status(400).send({ message: err.message });
+        return res
+          .status(HTTP_STATUS.BAD_REQUEST)
+          .send({ message: "Invalid data" });
       }
-      return res.status(500).send({ message: err.message });
+      return res
+        .status(HTTP_STATUS.SERVER_ERROR)
+        .send({ message: "An error has occurred on the server." });
     });
 };
 
@@ -34,12 +41,18 @@ const getUser = (req, res) => {
     .catch((err) => {
       console.error(err);
       if (err.name === "CastError") {
-        return res.status(400).send({ message: "Invalid user ID" });
+        return res
+          .status(HTTP_STATUS.BAD_REQUEST)
+          .send({ message: "Invalid data" });
       }
       if (err.name === "DocumentNotFoundError") {
-        return res.status(404).send({ message: "User not found" });
+        return res
+          .status(HTTP_STATUS.NOT_FOUND)
+          .send({ message: "Requested resource not found" });
       }
-      return res.status(500).send({ message: err.message });
+      return res
+        .status(HTTP_STATUS.SERVER_ERROR)
+        .send({ message: "An error has occurred on the server." });
     });
 };
 

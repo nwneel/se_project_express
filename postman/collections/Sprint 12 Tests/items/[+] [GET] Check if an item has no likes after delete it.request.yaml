@@ -1,0 +1,54 @@
+$kind: http-request
+url: "{{base_url}}/items"
+method: GET
+scripts:
+  - type: afterResponse
+    code: "pm.test(\"The response body should have json with an empty 'likes' property\", () => {\r
+
+      \    const items = utils.getData(pm.response.json());\r
+
+      \    console.log({ items })\r
+
+      \    const userId = pm.collectionVariables.get(\"user_id_code\");\r
+
+      \    const itemId = pm.collectionVariables.get(\"item_id\");\r
+
+      \    const item = items?.find((item) => item._id === itemId);\r
+
+      \r
+
+      \    pm.expect(!!item?.likes?.includes(userId)).to.eq(false);\r
+
+      });"
+    language: text/javascript
+  - type: beforeRequest
+    code: |+
+      const name = pm.collectionVariables.get('item_name');
+      const weather = pm.collectionVariables.get('item_weather');
+      const imageUrl = pm.collectionVariables.get('item_imageUrl');
+
+      const createItemReqOpts = {
+      	url: `${pm.collectionVariables.get("base_url")}/items`,
+        method: 'POST',
+        header: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name, weather, imageUrl })
+      }
+
+      pm.sendRequest(createItemReqOpts, function (error, response) {
+        pm.test("Preliminary POST /items request should be successful", () => {
+          pm.expect(response.code).to.be.oneOf([200, 201]);
+        });
+
+        try {
+          if (response.json()) {
+            const item = utils.getData(response.json());
+            pm.collectionVariables.set("item_id", item._id);
+          }
+        } catch (e) {}
+
+      });
+
+    language: text/javascript
+order: 14000

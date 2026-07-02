@@ -1,0 +1,53 @@
+$kind: collection
+description: In sprint 12 you've learned how to work with databases, set up security, and deploy your web application on a remote machine. Once you've created a server with an API and user authorization, it is time now to test your project with Postman tests.
+variables:
+  base_url: http://localhost:3001
+  user_name: test
+  user_avatar: https://example.com/av.bmp
+  user_id: ""
+  user_id_const: 61eade4c6d5acf558c42d9b8
+  user_name_incorrect: n
+  user_avatar_incorrect: https://thisisnotvalidurl
+  item_name: testItem
+  item_imageUrl: https://example.com/link.test
+  item_weather: hot
+  item_id: ""
+  schema_message_only: ""
+  item_imageUrl_incorrect: https://thisisnotvalidurl
+  user_id_code: ""
+scripts:
+  - type: http:beforeRequest
+    code: |-
+      const schemaMessageOnly = {
+          "type": "object",
+          "properties": {
+              "message": {
+                  "type": "string",
+                  "minLength": 1
+              }
+          },
+          "required": ["message"]
+      };
+
+      pm.collectionVariables.set("schema_message_only", JSON.stringify(schemaMessageOnly));
+
+      utils = {
+          getData: (jsonData) => {
+              if(Array.isArray(jsonData)) {
+                  return jsonData;
+              }
+
+              const keys = Object.keys(jsonData);
+              const firstKey = keys[0];
+              const firstKeyValue = jsonData[firstKey];
+
+              return keys.length === 1 && typeof firstKeyValue === 'object' ? firstKeyValue : jsonData;
+          }
+      }
+    language: text/javascript
+  - type: http:afterResponse
+    code: |-
+      pm.test("Response should contain a JSON object", () => {
+          pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');
+      });
+    language: text/javascript

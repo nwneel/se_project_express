@@ -1,0 +1,28 @@
+$kind: http-request
+name: '[-] [POST] Add a user without the required "name" field'
+url: "{{base_url}}/users"
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \    \"avatar\": \"{{user_avatar}}\"\r
+
+    }"
+scripts:
+  - type: afterResponse
+    code: "pm.test(\"Status code should be 400\", () => {\r
+
+      \  pm.response.to.have.status(400);\r
+
+      });\r
+
+      \r
+
+      pm.test(\"Response body should have json with a 'message' property\", () => {\r
+
+      \  pm.response.to.have.jsonSchema(JSON.parse(pm.collectionVariables.get(\"schema_message_only\")))\r
+
+      });"
+    language: text/javascript
+order: 4000

@@ -1,0 +1,23 @@
+$kind: http-request
+name: "[-] [GET] Get a user with an _id that does not exist in the database"
+url: "{{base_url}}/users/:userid"
+method: GET
+pathVariables:
+  userid: "{{user_id_const}}"
+scripts:
+  - type: afterResponse
+    code: "pm.test(\"Status code should be 404\", function () {\r
+
+      \    pm.response.to.have.status(404);\r
+
+      });\r
+
+      \r
+
+      pm.test(\"Response body should have json with a 'message' property\", () => {\r
+
+      \    pm.response.to.have.jsonSchema(JSON.parse(pm.collectionVariables.get(\"schema_message_only\")))\r
+
+      });\r\n"
+    language: text/javascript
+order: 4000

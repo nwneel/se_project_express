@@ -1,0 +1,23 @@
+$kind: http-request
+name: "[-] [DELETE] Deletes an item with a non-existent _id in the database"
+url: "{{base_url}}/items/:id"
+method: DELETE
+pathVariables:
+  id: "{{user_id_const}}"
+scripts:
+  - type: afterResponse
+    code: "pm.test(\"Status code should be 404\", () => {\r
+
+      \    pm.response.to.have.status(404);\r
+
+      });\r
+
+      \r
+
+      pm.test(\"Response body should have json with a 'message' property\", () => {\r
+
+      \    pm.response.to.have.jsonSchema(JSON.parse(pm.collectionVariables.get(\"schema_message_only\")))\r
+
+      });"
+    language: text/javascript
+order: 18000

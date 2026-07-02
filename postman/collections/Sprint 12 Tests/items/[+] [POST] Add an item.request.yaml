@@ -1,0 +1,55 @@
+$kind: http-request
+url: "{{base_url}}/items"
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \    \"name\": \"{{item_name}}\",\r
+
+    \    \"weather\": \"{{item_weather}}\",\r
+
+    \    \"imageUrl\": \"{{item_imageUrl}}\"\r
+
+    }"
+scripts:
+  - type: afterResponse
+    code: "pm.test(\"Status code should be 200 or 201\", () => {\r
+
+      \    pm.expect(pm.response.code).to.be.oneOf([200, 201]);\r
+
+      });\r
+
+      \r
+
+      pm.test(\"Response body should have json with form data\", () => {\r
+
+      \    const item = utils.getData(pm.response.json());\r
+
+      \r
+
+      \    pm.expect(item.name).to.eql(pm.collectionVariables.get(\"item_name\"));\r
+
+      \    pm.expect(item.weather).to.eql(pm.collectionVariables.get(\"item_weather\"));\r
+
+      \    pm.expect(item.imageUrl).to.eql(pm.collectionVariables.get(\"item_imageUrl\"));\r
+
+      });\r
+
+      \r
+
+      pm.test(\"Response body should have json with filed _id\", () => {\r
+
+      \    const item = utils.getData(pm.response.json());\r
+
+      \r
+
+      \    pm.expect(item).to.have.property('_id');\r
+
+      \r
+
+      \    pm.collectionVariables.set(\"item_id\", item._id);\r
+
+      });"
+    language: text/javascript
+order: 1000

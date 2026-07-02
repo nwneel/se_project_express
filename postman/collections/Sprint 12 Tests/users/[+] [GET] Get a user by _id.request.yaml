@@ -1,0 +1,56 @@
+$kind: http-request
+url: "{{base_url}}/users/:userid"
+method: GET
+pathVariables:
+  userid: "{{user_id}}"
+scripts:
+  - type: beforeRequest
+    code: |+
+      const name = pm.collectionVariables.get('user_name');
+      const avatar = pm.collectionVariables.get('user_avatar');
+
+      const createUserReqOpts = {
+      	url: `${pm.collectionVariables.get("base_url")}/users`,
+        method: 'POST',
+        header: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name, avatar })
+      }
+
+      pm.sendRequest(createUserReqOpts, function (error, response) {
+        pm.test("Preliminary POST /users request should be successful", () => {
+          pm.expect(response.code).to.be.oneOf([200, 201]);
+        });
+        try {
+          if (response.json()) {
+            const user = utils.getData(response.json());
+            pm.collectionVariables.set("user_id", user._id);
+          }
+        } catch (e) {}  
+        
+      });
+
+    language: text/javascript
+  - type: afterResponse
+    code: "pm.test(\"Status code should be 200\", function () {\r
+
+      \    pm.response.to.have.status(200);\r
+
+      });\r
+
+      \r
+
+      pm.test(\"Response body should have json with user data\", () => {\r
+
+      \    const user = utils.getData(pm.response.json());\r
+
+      \r
+
+      \    pm.expect(user.name).to.eql(pm.collectionVariables.get(\"user_name\"));\r
+
+      \    pm.expect(user.avatar).to.eql(pm.collectionVariables.get(\"user_avatar\"));\r
+
+      });"
+    language: text/javascript
+order: 2000

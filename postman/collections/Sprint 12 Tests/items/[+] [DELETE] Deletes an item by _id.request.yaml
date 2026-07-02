@@ -1,0 +1,44 @@
+$kind: http-request
+url: "{{base_url}}/items/:id"
+method: DELETE
+pathVariables:
+  id: "{{item_id}}"
+scripts:
+  - type: afterResponse
+    code: "pm.test(\"Status code should be 200\", function () {\r
+
+      \    pm.response.to.have.status(200);\r
+
+      });"
+    language: text/javascript
+  - type: beforeRequest
+    code: |+
+      const name = pm.collectionVariables.get('item_name');
+      const weather = pm.collectionVariables.get('item_weather');
+      const imageUrl = pm.collectionVariables.get('item_imageUrl');
+
+      const createItemReqOpts = {
+      	url: `${pm.collectionVariables.get("base_url")}/items`,
+        method: 'POST',
+        header: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name, weather, imageUrl })
+      }
+
+      pm.sendRequest(createItemReqOpts, function (error, response) {
+        pm.test("Preliminary POST /items request should be successful", () => {
+          pm.expect(response.code).to.be.oneOf([200, 201]);
+        });
+
+        try {
+          if (response.json()) {
+            const item = utils.getData(response.json());
+            pm.collectionVariables.set("item_id", item._id);
+          }
+        } catch (e) {}
+
+      });
+
+    language: text/javascript
+order: 15000

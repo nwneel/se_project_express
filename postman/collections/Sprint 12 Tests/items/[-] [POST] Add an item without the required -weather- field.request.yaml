@@ -1,0 +1,30 @@
+$kind: http-request
+name: '[-] [POST] Add an item without the required "weather" field'
+url: "{{base_url}}/items"
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \    \"name\": \"{{item_name}}\",\r
+
+    \    \"imageUrl\": \"{{item_imageUrl}}\"\r
+
+    }"
+scripts:
+  - type: afterResponse
+    code: "pm.test(\"Status code should be 400\", () => {\r
+
+      \    pm.response.to.have.status(400);\r
+
+      });\r
+
+      \r
+
+      pm.test(\"Response body should have json with a 'message' property\", () => {\r
+
+      \    pm.response.to.have.jsonSchema(JSON.parse(pm.collectionVariables.get(\"schema_message_only\")))\r
+
+      });"
+    language: text/javascript
+order: 5000

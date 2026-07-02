@@ -1,29 +1,35 @@
 const ClothingItem = require("../models/clothingItems");
+const { HTTP_STATUS } = require("../utils/errors");
 
 const createItem = (req, res) => {
-  const { name, weather, imageUrl, imageURL } = req.body;
+  const { name, weather, imageUrl } = req.body;
   const owner = req.user && req.user._id;
 
   if (!owner) {
-    return res.status(401).send({ message: "Owner information is required" });
+    return res
+      .status(HTTP_STATUS.UNAUTHORIZED)
+      .send({ message: "Owner information is required" });
   }
 
-  ClothingItem.create({
+  return ClothingItem.create({
     name,
     weather,
-    imageURL,
+    imageUrl,
     owner,
   })
     .then((item) => {
       res.status(201).send({ data: item });
     })
     .catch((err) => {
+      console.error(err);
       if (err.name === "ValidationError") {
-        return res.status(400).send({ message: err.message });
+        return res
+          .status(HTTP_STATUS.BAD_REQUEST)
+          .send({ message: "Invalid data" });
       }
-      res
-        .status(500)
-        .send({ message: "Error creating item", error: err.message });
+      return res
+        .status(HTTP_STATUS.SERVER_ERROR)
+        .send({ message: "An error has occurred on the server." });
     });
 };
 
@@ -31,33 +37,39 @@ const getItems = (req, res) => {
   ClothingItem.find({})
     .then((items) => res.status(200).send({ data: items }))
     .catch((err) => {
+      console.error(err);
       res
-        .status(500)
-        .send({ message: "Error fetching items", error: err.message });
+        .status(HTTP_STATUS.SERVER_ERROR)
+        .send({ message: "An error has occurred on the server." });
     });
 };
 
 const updateItem = (req, res) => {
   const { itemId } = req.params;
-  const { imageUrl, imageURL } = req.body;
+  const { imageUrl } = req.body;
 
   ClothingItem.findByIdAndUpdate(
     itemId,
-    { imageUrl: imageUrl || imageURL },
+    { imageUrl },
     { new: true, runValidators: true }
   )
     .orFail()
     .then((item) => res.status(200).send({ data: item }))
     .catch((err) => {
+      console.error(err);
       if (err.name === "DocumentNotFoundError") {
-        return res.status(404).send({ message: "Item not found" });
+        return res
+          .status(HTTP_STATUS.NOT_FOUND)
+          .send({ message: "Requested resource not found" });
       }
       if (err.name === "ValidationError") {
-        return res.status(400).send({ message: err.message });
+        return res
+          .status(HTTP_STATUS.BAD_REQUEST)
+          .send({ message: "Invalid data" });
       }
-      res
-        .status(500)
-        .send({ message: "Error updating item", error: err.message });
+      return res
+        .status(HTTP_STATUS.SERVER_ERROR)
+        .send({ message: "An error has occurred on the server." });
     });
 };
 
@@ -68,12 +80,15 @@ const deleteItem = (req, res) => {
     .orFail()
     .then(() => res.status(204).send({}))
     .catch((err) => {
+      console.error(err);
       if (err.name === "DocumentNotFoundError") {
-        return res.status(404).send({ message: "Item not found" });
+        return res
+          .status(HTTP_STATUS.NOT_FOUND)
+          .send({ message: "Requested resource not found" });
       }
-      res
-        .status(500)
-        .send({ message: "Error deleting item", error: err.message });
+      return res
+        .status(HTTP_STATUS.SERVER_ERROR)
+        .send({ message: "An error has occurred on the server." });
     });
 };
 
@@ -82,10 +97,12 @@ const likeItem = (req, res) => {
   const userId = req.user && req.user._id;
 
   if (!userId) {
-    return res.status(401).send({ message: "User authorization required" });
+    return res
+      .status(HTTP_STATUS.UNAUTHORIZED)
+      .send({ message: "User authorization required" });
   }
 
-  ClothingItem.findByIdAndUpdate(
+  return ClothingItem.findByIdAndUpdate(
     itemId,
     { $addToSet: { likes: userId } },
     { new: true }
@@ -93,12 +110,15 @@ const likeItem = (req, res) => {
     .orFail()
     .then((item) => res.status(200).send({ data: item }))
     .catch((err) => {
+      console.error(err);
       if (err.name === "DocumentNotFoundError") {
-        return res.status(404).send({ message: "Item not found" });
+        return res
+          .status(HTTP_STATUS.NOT_FOUND)
+          .send({ message: "Requested resource not found" });
       }
-      res
-        .status(500)
-        .send({ message: "Error liking item", error: err.message });
+      return res
+        .status(HTTP_STATUS.SERVER_ERROR)
+        .send({ message: "An error has occurred on the server." });
     });
 };
 
@@ -107,10 +127,12 @@ const unlikeItem = (req, res) => {
   const userId = req.user && req.user._id;
 
   if (!userId) {
-    return res.status(401).send({ message: "User authorization required" });
+    return res
+      .status(HTTP_STATUS.UNAUTHORIZED)
+      .send({ message: "User authorization required" });
   }
 
-  ClothingItem.findByIdAndUpdate(
+  return ClothingItem.findByIdAndUpdate(
     itemId,
     { $pull: { likes: userId } },
     { new: true }
@@ -118,12 +140,15 @@ const unlikeItem = (req, res) => {
     .orFail()
     .then((item) => res.status(200).send({ data: item }))
     .catch((err) => {
+      console.error(err);
       if (err.name === "DocumentNotFoundError") {
-        return res.status(404).send({ message: "Item not found" });
+        return res
+          .status(HTTP_STATUS.NOT_FOUND)
+          .send({ message: "Requested resource not found" });
       }
-      res
-        .status(500)
-        .send({ message: "Error unliking item", error: err.message });
+      return res
+        .status(HTTP_STATUS.SERVER_ERROR)
+        .send({ message: "An error has occurred on the server." });
     });
 };
 

@@ -1,0 +1,51 @@
+$kind: http-request
+url: "{{base_url}}/users"
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \    \"name\": \"{{user_name}}\",\r
+
+    \    \"avatar\": \"{{user_avatar}}\"\r
+
+    }"
+scripts:
+  - type: afterResponse
+    code: "pm.test(\"Status code should be 200 or 201\", () => {\r
+
+      \    pm.expect(pm.response.code).to.be.oneOf([200, 201]);\r
+
+      });\r
+
+      \r
+
+      pm.test(\"Response body should have json with form data\", () => {\r
+
+      \    const user = utils.getData(pm.response.json());\r
+
+      \r
+
+      \    pm.expect(user.name).to.eql(pm.collectionVariables.get(\"user_name\"));\r
+
+      \    pm.expect(user.avatar).to.eql(pm.collectionVariables.get(\"user_avatar\"));\r
+
+      });\r
+
+      \r
+
+      pm.test(\"Response body should have json with _id field\", () => {\r
+
+      \    const user = utils.getData(pm.response.json());\r
+
+      \r
+
+      \    pm.expect(user).to.have.property('_id');\r
+
+      \    \r
+
+      \    pm.collectionVariables.set(\"user_id\", user._id);\r
+
+      });\r\n"
+    language: text/javascript
+order: 1000

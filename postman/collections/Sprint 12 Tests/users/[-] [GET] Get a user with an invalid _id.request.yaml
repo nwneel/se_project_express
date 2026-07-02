@@ -1,0 +1,20 @@
+$kind: http-request
+url: "{{base_url}}/users/invalid-fake-user-id"
+method: GET
+scripts:
+  - type: afterResponse
+    code: "pm.test(\"Status code should be 400\", () => {\r
+
+      \    pm.response.to.have.status(400);\r
+
+      });\r
+
+      \r
+
+      pm.test(\"Response body should have json with a 'message' property\", () => {\r
+
+      \    pm.response.to.have.jsonSchema(JSON.parse(pm.collectionVariables.get(\"schema_message_only\")))\r
+
+      });\r\n"
+    language: text/javascript
+order: 3000

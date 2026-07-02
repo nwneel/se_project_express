@@ -1,0 +1,32 @@
+$kind: http-request
+name: '[-] [POST] Add an item with "name" field greater than 30 characters'
+url: "{{base_url}}/items"
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \    \"name\": \"{{$randomLoremSentences}}\",\r
+
+    \    \"weather\": \"{{item_weather}}\",\r
+
+    \    \"imageUrl\": \"{{item_imageUrl}}\"\r
+
+    }"
+scripts:
+  - type: afterResponse
+    code: "pm.test(\"Status code should be 400\", () => {\r
+
+      \    pm.response.to.have.status(400);\r
+
+      });\r
+
+      \r
+
+      pm.test(\"Response body should have json with a 'message' property\", () => {\r
+
+      \    pm.response.to.have.jsonSchema(JSON.parse(pm.collectionVariables.get(\"schema_message_only\")))\r
+
+      });"
+    language: text/javascript
+order: 3000

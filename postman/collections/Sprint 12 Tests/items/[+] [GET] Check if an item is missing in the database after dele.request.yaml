@@ -1,0 +1,45 @@
+$kind: http-request
+name: "[+] [GET] Check if an item is missing in the database after deleting it"
+url: "{{base_url}}/items"
+method: GET
+scripts:
+  - type: afterResponse
+    code: "pm.test(\"The deleted item must not still be in the database\", () => {\r
+
+      \    const items = utils.getData(pm.response.json());\r
+
+      \    const deletedId = pm.collectionVariables.get(\"item_id\");\r
+
+      \    const hasItem = !!items?.find((item) => item._id === deletedId);\r
+
+      \r
+
+      \    pm.expect(hasItem).to.eq(false);\r
+
+      });"
+    language: text/javascript
+  - type: beforeRequest
+    code: |+
+      const id = pm.collectionVariables.get('item_id');
+
+      const createItemReqOpts = {
+      	url: `${pm.collectionVariables.get("base_url")}/items/${id}`,
+        method: 'DELETE',
+        header: {
+          'Content-Type': 'application/json',
+        },
+      }
+
+      pm.sendRequest(createItemReqOpts, function (error, response) {
+        pm.test(`Preliminary DELETE /items/${id} request should be successful`, () => {
+        pm.expect(response.code).to.be.oneOf([200, 201, 404]);
+      });
+
+      try {
+        console.log(error ? error : response.json());
+      } catch (e) {}
+
+      });
+
+    language: text/javascript
+order: 16000
