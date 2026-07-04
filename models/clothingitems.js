@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const validator = require("validator");
-
+// lines 4-38 define the schema for a clothing item. Think of a schema like a blueprint or a form template — it describes what information each clothing item must have.
 const clothingItemsSchema = new mongoose.Schema({
   name: {
     type: String,
