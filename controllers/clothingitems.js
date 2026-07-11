@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const ClothingItem = require("../models/clothingItems");
 const { HTTP_STATUS } = require("../utils/errors");
 
@@ -75,12 +76,36 @@ const updateItem = (req, res) => {
 
 const deleteItem = (req, res) => {
   const { itemId } = req.params;
+  const userId = req.user && req.user._id;
 
-  ClothingItem.findByIdAndDelete(itemId)
+  if (!userId) {
+    return res
+      .status(HTTP_STATUS.UNAUTHORIZED)
+      .send({ message: "User authorization required" });
+  }
+
+  if (!mongoose.Types.ObjectId.isValid(itemId)) {
+    return res.status(HTTP_STATUS.BAD_REQUEST).send({ message: "Invalid id" });
+  }
+
+  return ClothingItem.findById(itemId)
     .orFail()
-    .then(() => res.status(204).send({}))
+    .then((item) => {
+      if (!item.owner || !item.owner.equals(userId)) {
+        return res
+          .status(HTTP_STATUS.FORBIDDEN)
+          .send({ message: "You do not have permission to delete this item" });
+      }
+
+      return item.remove().then(() => res.status(204).send({}));
+    })
     .catch((err) => {
       console.error(err);
+      if (err.name === "CastError") {
+        return res
+          .status(HTTP_STATUS.BAD_REQUEST)
+          .send({ message: "Invalid id" });
+      }
       if (err.name === "DocumentNotFoundError") {
         return res
           .status(HTTP_STATUS.NOT_FOUND)
@@ -102,6 +127,10 @@ const likeItem = (req, res) => {
       .send({ message: "User authorization required" });
   }
 
+  if (!mongoose.Types.ObjectId.isValid(itemId)) {
+    return res.status(HTTP_STATUS.BAD_REQUEST).send({ message: "Invalid id" });
+  }
+
   return ClothingItem.findByIdAndUpdate(
     itemId,
     { $addToSet: { likes: userId } },
@@ -111,6 +140,11 @@ const likeItem = (req, res) => {
     .then((item) => res.status(200).send({ data: item }))
     .catch((err) => {
       console.error(err);
+      if (err.name === "CastError") {
+        return res
+          .status(HTTP_STATUS.BAD_REQUEST)
+          .send({ message: "Invalid id" });
+      }
       if (err.name === "DocumentNotFoundError") {
         return res
           .status(HTTP_STATUS.NOT_FOUND)
@@ -132,6 +166,10 @@ const unlikeItem = (req, res) => {
       .send({ message: "User authorization required" });
   }
 
+  if (!mongoose.Types.ObjectId.isValid(itemId)) {
+    return res.status(HTTP_STATUS.BAD_REQUEST).send({ message: "Invalid id" });
+  }
+
   return ClothingItem.findByIdAndUpdate(
     itemId,
     { $pull: { likes: userId } },
@@ -141,6 +179,11 @@ const unlikeItem = (req, res) => {
     .then((item) => res.status(200).send({ data: item }))
     .catch((err) => {
       console.error(err);
+      if (err.name === "CastError") {
+        return res
+          .status(HTTP_STATUS.BAD_REQUEST)
+          .send({ message: "Invalid id" });
+      }
       if (err.name === "DocumentNotFoundError") {
         return res
           .status(HTTP_STATUS.NOT_FOUND)

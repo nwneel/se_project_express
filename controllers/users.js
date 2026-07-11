@@ -4,13 +4,65 @@ const User = require("../models/user");
 const { JWT_SECRET } = require("../utils/config");
 const { HTTP_STATUS } = require("../utils/errors");
 
-const getUsers = (req, res) => {
-  User.find({})
-    .then((users) => {
-      res.send(users);
-    })
+const getCurrentUser = (req, res) => {
+  const userId = req.user && req.user._id;
+
+  if (!userId) {
+    return res
+      .status(HTTP_STATUS.UNAUTHORIZED)
+      .send({ message: "Authorization required" });
+  }
+
+  return User.findById(userId)
+    .orFail()
+    .then((user) => res.status(200).send(user))
     .catch((err) => {
       console.error(err);
+      if (err.name === "DocumentNotFoundError") {
+        return res
+          .status(HTTP_STATUS.NOT_FOUND)
+          .send({ message: "Requested resource not found" });
+      }
+      return res
+        .status(HTTP_STATUS.SERVER_ERROR)
+        .send({ message: "An error has occurred on the server." });
+    });
+};
+
+const updateUserProfile = (req, res) => {
+  const userId = req.user && req.user._id;
+  const { name, avatar } = req.body;
+
+  if (!userId) {
+    return res
+      .status(HTTP_STATUS.UNAUTHORIZED)
+      .send({ message: "Authorization required" });
+  }
+
+  return User.findByIdAndUpdate(
+    userId,
+    { name, avatar },
+    { new: true, runValidators: true }
+  )
+    .orFail()
+    .then((user) => res.status(200).send(user))
+    .catch((err) => {
+      console.error(err);
+      if (err.name === "CastError") {
+        return res
+          .status(HTTP_STATUS.BAD_REQUEST)
+          .send({ message: "Invalid data" });
+      }
+      if (err.name === "ValidationError") {
+        return res
+          .status(HTTP_STATUS.BAD_REQUEST)
+          .send({ message: "Invalid data" });
+      }
+      if (err.name === "DocumentNotFoundError") {
+        return res
+          .status(HTTP_STATUS.NOT_FOUND)
+          .send({ message: "Requested resource not found" });
+      }
       return res
         .status(HTTP_STATUS.SERVER_ERROR)
         .send({ message: "An error has occurred on the server." });
@@ -35,29 +87,10 @@ const createUser = (req, res) => {
           .status(HTTP_STATUS.BAD_REQUEST)
           .send({ message: "Invalid data" });
       }
-      return res
-        .status(HTTP_STATUS.SERVER_ERROR)
-        .send({ message: "An error has occurred on the server." });
-    });
-};
-
-const getUser = (req, res) => {
-  const { userId } = req.params;
-
-  User.findById(userId)
-    .orFail()
-    .then((user) => res.status(200).send(user))
-    .catch((err) => {
-      console.error(err);
-      if (err.name === "CastError") {
+      if (err.code === 11000) {
         return res
-          .status(HTTP_STATUS.BAD_REQUEST)
-          .send({ message: "Invalid data" });
-      }
-      if (err.name === "DocumentNotFoundError") {
-        return res
-          .status(HTTP_STATUS.NOT_FOUND)
-          .send({ message: "Requested resource not found" });
+          .status(HTTP_STATUS.CONFLICT)
+          .send({ message: "User with this email already exists" });
       }
       return res
         .status(HTTP_STATUS.SERVER_ERROR)
@@ -75,7 +108,22 @@ const login = (req, res) => {
       });
       return res.status(200).send({ token });
     })
-    .catch((err) => res.status(401).send({ message: err.message }));
+    .catch((err) => {
+      console.error(err);
+      if (err.name === "AuthenticationError") {
+        return res
+          .status(HTTP_STATUS.UNAUTHORIZED)
+          .send({ message: "Incorrect email or password" });
+      }
+      return res
+        .status(HTTP_STATUS.SERVER_ERROR)
+        .send({ message: "An error has occurred on the server." });
+    });
 };
 
-module.exports = { getUsers, createUser, getUser, login };
+module.exports = {
+  createUser,
+  login,
+  getCurrentUser,
+  updateUserProfile,
+};
