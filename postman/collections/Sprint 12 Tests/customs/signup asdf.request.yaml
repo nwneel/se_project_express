@@ -1,0 +1,18 @@
+$kind: http-request
+name: signup asdf
+url: http://localhost:3001/signup
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \    \"email\": \"asdf@mail.com\",\r
+
+    \    \"password\": \"asdfasdf\",\r
+
+    \    \"name\": \"asdf\",\r
+
+    \    \"avatar\": \"https://media.licdn.com/dms/image/v2/D5635AQGj-5xPLddVug/profile-framedphoto-shrink_800_800/B56ZuatnbZG0Ag-/0/1767827208258?e=1784318400&v=beta&t=iDCDmEeUJ6_-xw-O2SYYePbwMVAxW5FmVP2aqaStAms\"\r
+
+    }"
+order: 1783711291676

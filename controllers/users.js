@@ -1,4 +1,7 @@
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 const User = require("../models/user");
+const { JWT_SECRET } = require("../utils/config");
 const { HTTP_STATUS } = require("../utils/errors");
 
 const getUsers = (req, res) => {
@@ -15,10 +18,16 @@ const getUsers = (req, res) => {
 };
 
 const createUser = (req, res) => {
-  const { name, avatar } = req.body;
+  const { name, avatar, email, password } = req.body;
 
-  User.create({ name, avatar })
-    .then((user) => res.status(200).send(user))
+  bcrypt
+    .hash(password, 10)
+    .then((hash) => User.create({ name, avatar, email, password: hash }))
+    .then((user) => {
+      const userData = user.toObject();
+      delete userData.password;
+      return res.status(200).send(userData);
+    })
     .catch((err) => {
       console.error(err);
       if (err.name === "ValidationError") {
@@ -56,4 +65,17 @@ const getUser = (req, res) => {
     });
 };
 
-module.exports = { getUsers, createUser, getUser };
+const login = (req, res) => {
+  const { email, password } = req.body;
+
+  return User.findUserByCredentials(email, password)
+    .then((user) => {
+      const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
+        expiresIn: "7d",
+      });
+      return res.status(200).send({ token });
+    })
+    .catch((err) => res.status(401).send({ message: err.message }));
+};
+
+module.exports = { getUsers, createUser, getUser, login };

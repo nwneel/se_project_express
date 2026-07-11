@@ -1,0 +1,14 @@
+$kind: http-request
+name: signin asdf
+url: http://localhost:3001/signin
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \    \"email\": \"asdf@mail.com\",\r
+
+    \    \"password\": \"asdfasdf\"\r
+
+    }"
+order: 4196704043837613
