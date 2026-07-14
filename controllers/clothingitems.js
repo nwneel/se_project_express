@@ -18,9 +18,7 @@ const createItem = (req, res) => {
     imageUrl,
     owner,
   })
-    .then((item) => {
-      res.status(201).send({ data: item });
-    })
+    .then((item) => res.status(201).send({ data: item }))
     .catch((err) => {
       console.error(err);
       if (err.name === "ValidationError") {
@@ -97,7 +95,11 @@ const deleteItem = (req, res) => {
           .send({ message: "You do not have permission to delete this item" });
       }
 
-      return item.remove().then(() => res.status(204).send({}));
+      return item.deleteOne().then(() =>
+        res.status(200).send({
+          message: "Item deleted successfully",
+        })
+      );
     })
     .catch((err) => {
       console.error(err);

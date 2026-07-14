@@ -101,6 +101,12 @@ const createUser = (req, res) => {
 const login = (req, res) => {
   const { email, password } = req.body;
 
+  if (!email || !password) {
+    return res
+      .status(HTTP_STATUS.BAD_REQUEST)
+      .send({ message: "Email and password are required" });
+  }
+
   return User.findUserByCredentials(email, password)
     .then((user) => {
       const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
@@ -110,7 +116,7 @@ const login = (req, res) => {
     })
     .catch((err) => {
       console.error(err);
-      if (err.name === "AuthenticationError") {
+      if (err.message === "Incorrect email or password") {
         return res
           .status(HTTP_STATUS.UNAUTHORIZED)
           .send({ message: "Incorrect email or password" });

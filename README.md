@@ -19,3 +19,5 @@ Think of it like a restaurant kitchen 🍽️ — the customer (front end) place
 `npm run start` — to launch the server
 
 `npm run dev` — to launch the server with the hot reload feature
+
+Project Pitch Video: https://www.loom.com/share/8c581be096534fd793c431c37e990387
