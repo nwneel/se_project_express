@@ -1,7 +1,10 @@
 const express = require("express");
 const cors = require("cors");
+const { errors } = require("celebrate");
 const mongoose = require("mongoose");
 const mainRouter = require("./routes/index");
+const errorHandler = require("./middleware/errorHandler");
+const { requestLogger, errorLogger } = require("./middleware/logger");
 
 const app = express();
 
@@ -20,6 +23,13 @@ mongoose
 app.use(express.json());
 // app.use("/", mainRouter) hands off all incoming requests to your main router, which then directs traffic to the right route handlers.
 app.use("/", mainRouter);
+app.use(requestLogger);
+
+app.use(errorLogger); // enabling the error logger
+// celebrate error handler
+app.use(errors());
+// our centralized handler
+app.use(errorHandler);
 // app.listen(3001, ...) starts the server and tells it to listen for requests on port 3001.
 app.listen(3001, () => {
   console.log(`Listening on port ${PORT}`);
