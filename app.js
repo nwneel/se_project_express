@@ -1,5 +1,7 @@
 const express = require("express");
 const cors = require("cors");
+// Reads data from environmental variables
+require("dotenv").config();
 const { errors } = require("celebrate");
 const mongoose = require("mongoose");
 const mainRouter = require("./routes/index");
